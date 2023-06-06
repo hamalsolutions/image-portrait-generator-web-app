@@ -1,25 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {Fallback, RootErrorBoundary} from "./pages/RootErrorBoundary"
+import Login from "./pages/Login";
+import NoMatch from "./pages/NoMatch"
+// import {projectLoader} from "./pages/ProjectLoader";
+
+let router = createBrowserRouter([
+  {
+    path: "/",
+    element: <h1 className="h1"> Que onda </h1>,
+    errorElement: <RootErrorBoundary />,
+  },
+  {
+    path: "login",
+    element: <Login />,
+    errorElement: <RootErrorBoundary />,
+  },
+  {
+    path: "*",
+    element: <NoMatch />,
+    errorElement: <RootErrorBoundary />,
+  },
+]);
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  return <RouterProvider router={router} fallbackElement={<Fallback />} />;
 }
 
 export default App;
