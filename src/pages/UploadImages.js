@@ -5,9 +5,10 @@ export default function UploadImages() {
   const authContext = useContext(AuthContext);
   return (
     <div>
-      <h2>We're still building this page bro</h2>
-      
-      {JSON.stringify(authContext)}
+      <h2 data-cy="uploadImagesContent">
+        This page is currently under construction, please stay tunned for it's
+        release
+      </h2>
     </div>
   );
 }

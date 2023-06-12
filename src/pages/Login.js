@@ -1,23 +1,23 @@
 import React, { useState, useContext } from "react";
-import Avatar from "@mui/material/Avatar";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { AuthContext } from "../App";
 import * as crypto from "crypto-js";
 import { Navigate } from "react-router-dom";
+import logo from "../logo.png";
 
 const defaultTheme = createTheme();
 const Login = () => {
   const [state, setState] = useState({
     requesting: false,
     redirect: false,
-    status: "idle",
+    error: false,
     message: "",
     username: "",
     password: "",
@@ -38,8 +38,8 @@ const Login = () => {
       `${process.env.REACT_APP_API_URL}/api/config/sites`,
       sitesQueryConfig
     );
+    sites = await response.json();
     if (response.ok) {
-      sites = await response.json();
       const sitesClean = sites.sites
         .filter((site) => site.site !== "0-0")
         .map((site) => {
@@ -51,13 +51,13 @@ const Login = () => {
         });
       return sitesClean;
     } else {
-      return Promise.reject(
-        new Error("Failed to retrieve the sitelist from /api/config/sites")
-      );
+      return Promise.resolve({
+        error: sites?.Error?.Message?? "There was an error obtaining the sites list",
+      });
     }
   };
 
-  const singleLogin = async ({ username, password, siteId, locationId, siteName }) => {
+  const singleLogin = async ({ username, password, siteId }) => {
     const payload = {
       Username: username,
       Password: password,
@@ -81,54 +81,23 @@ const Login = () => {
       `${process.env.REACT_APP_API_URL}/api/userToken/`,
       loginConfig
     );
+    const responseData = await response.json();
     if (response.ok) {
-      const responseData = await response.json();
-      console.log(responseData.userRol.trim());
       const userRole = responseData.userRol.toLowerCase().trim();
       if (userRole === "technicians") {
         return Promise.resolve({
-          error:
-            "Failed to authenticate against " +
-            siteName +
-            " " +
-            siteId +
-            " NOT AUTHORIZED",
+          error: "Failed to authenticate against NOT AUTHORIZED",
           siteId: siteId,
-          siteName: siteName,
         });
       } else {
-        const data = {
-          auth: responseData,
-          siteId,
-          locationId,
-          siteName: siteName,
-        };
-        return Promise.resolve(data);
+        return Promise.resolve(responseData);
       }
     } else {
       return Promise.resolve({
-        error: "Failed to authenticate against " + siteName + " " + siteId,
+        error: responseData?.Error?.Message?? "Failed to authenticate",
         siteId: siteId,
-        siteName: siteName,
       });
     }
-  };
-
-  const multiLogin = async ({ username, password, sites }) => {
-    const authAttemps = sites.map((site) =>
-      singleLogin({
-        username: username,
-        password: password,
-        siteId: site.siteId,
-        locationId: site.locationId,
-        siteName: site.name,
-      })
-    );
-    const authResults = await Promise.all(authAttemps);
-    const successfulAuths = authResults.filter((item) => {
-      return "auth" in item;
-    });
-    return Promise.resolve(successfulAuths);
   };
 
   const handleFormSubmit = async (e) => {
@@ -139,31 +108,57 @@ const Login = () => {
     setState((state) => ({
       ...state,
       requesting: true,
+      error: false,
     }));
 
     try {
-      const sites = await getSites();
-      const auths = await multiLogin({
-        username: state.username,
-        password: state.password,
-        sites: sites,
-      }).catch((error) => {
+      const sites = await getSites().catch((error) => {
         console.log(error);
       });
-      authContext.setAuth({
-        ...authContext.auth,
-        auths,
-      });
-      setState((state) => ({
-        ...state,
-        requesting: false,
-        redirect: true,
-      }));
+      if (sites.error) {
+        setState((state) => ({
+          ...state,
+          requesting: false,
+          error: true,
+          message: sites.error,
+        }));
+      }
+      else{
+        const auth = await singleLogin({
+          username: state.username,
+          password: state.password,
+          siteId: "557418",
+        }).catch((error) => {
+          console.log(error);
+        });
+        if (auth.error) {
+          setState((state) => ({
+            ...state,
+            requesting: false,
+            error: true,
+            message: auth.error,
+          }));
+        } else {
+          authContext.setAuth({
+            ...authContext.auth,
+            auth,
+            sites,
+            loggedIn: true,
+          });
+          setState((state) => ({
+            ...state,
+            requesting: false,
+            redirect: true,
+          }));
+        }
+      }
     } catch (error) {
-      alert(error.message);
+      console.error(error);
       setState((state) => ({
         ...state,
         requesting: false,
+        error: true,
+        message: JSON.stringify(error),
       }));
     }
   };
@@ -190,11 +185,9 @@ const Login = () => {
             alignItems: "center",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign in {authContext.auth.status}
+          <img src={logo} width="35%" alt="Little Bellies Logo" />
+          <Typography component="h1" variant="h5" data-cy="loginTitle">
+            Log in
           </Typography>
           <Box component="form" noValidate sx={{ mt: 1 }}>
             <TextField
@@ -203,6 +196,7 @@ const Login = () => {
               required
               fullWidth
               id="username"
+              data-cy="username"
               label="Username"
               name="username"
               autoFocus
@@ -214,17 +208,23 @@ const Login = () => {
               required
               fullWidth
               name="password"
+              data-cy="password"
               label="Password"
               type="password"
               id="password"
               autoComplete="current-password"
               onChange={handleInputChange}
             />
+            {state.error && <Alert 
+              data-cy="errorAlert" severity="error">{state.message}</Alert>}
             <Button
               onClick={handleFormSubmit}
               fullWidth
+              data-cy="submitButton"
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 3, mb: 2,
+                backgroundColor: "#c2608e",
+                borderColor: "#c2608e #c2608e #fff",}}
             >
               Sign In
             </Button>
