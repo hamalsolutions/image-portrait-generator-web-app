@@ -1,30 +1,68 @@
-import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import {Fallback, RootErrorBoundary} from "./pages/RootErrorBoundary"
+import React, { useState } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
+import { Fallback, RootErrorBoundary } from "./pages/RootErrorBoundary";
 import Login from "./pages/Login";
-import NoMatch from "./pages/NoMatch"
+import NoMatch from "./pages/NoMatch";
+import UploadImages from "./pages/UploadImages";
+import { createContext } from "react";
 // import {projectLoader} from "./pages/ProjectLoader";
 
-let router = createBrowserRouter([
-  {
-    path: "/",
-    element: <h1 className="h1"> Que onda </h1>,
-    errorElement: <RootErrorBoundary />,
-  },
-  {
-    path: "login",
-    element: <Login />,
-    errorElement: <RootErrorBoundary />,
-  },
-  {
-    path: "*",
-    element: <NoMatch />,
-    errorElement: <RootErrorBoundary />,
-  },
-]);
+const initalAuthState = {
+  loggedIn: false,
+  auth: {},
+  status: "idle",
+  sites: [],
+};
+
+export const AuthContext = createContext(initalAuthState);
 
 function App() {
-  return <RouterProvider router={router} fallbackElement={<Fallback />} />;
+  const [auth, setAuth] = useState(initalAuthState);
+  let router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Navigate to="/login" replace={true} />,
+      errorElement: <RootErrorBoundary />,
+    },
+    {
+      path: "login",
+      element: <Login />,
+      errorElement: <RootErrorBoundary />,
+    },
+    {
+      path: "upload-images",
+      element: auth.loggedIn ? (
+        <UploadImages />
+      ) : (
+        <Navigate to="/login" replace={true} />
+      ),
+      errorElement: <RootErrorBoundary />,
+    },
+    {
+      path: "download-images",
+      element: auth.loggedIn ? (
+        <UploadImages />
+      ) : (
+        <Navigate to="/login" replace={true} />
+      ),
+      errorElement: <RootErrorBoundary />,
+    },
+    {
+      path: "*",
+      element: <NoMatch />,
+      errorElement: <RootErrorBoundary />,
+    },
+  ]);
+
+  return (
+    <AuthContext.Provider value={{ auth, setAuth }}>
+      <RouterProvider router={router} fallbackElement={<Fallback />} />
+    </AuthContext.Provider>
+  );
 }
 
 export default App;
