@@ -12,6 +12,7 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import logoHorizontal from "../logo-horizontal.png";
+import { Link } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const pages = [{title: "Upload Images", url: "/upload-images"},{title: "Download Images", url: "/download-images"}];
@@ -102,16 +103,18 @@ function NavBar() {
             <Box sx={{ flexGrow: 1, display: { xs: "block", md: "none" } }}>
               <img src={logoHorizontal} width="124" alt="Little Bellies Logo" />
             </Box>
-            <Box sx={{ flexGrow: 1, display: {  xs: "none", md: "flex" } }}>
+            <Box sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "flex" } }}>
               {pages.map((page) => (
-                <Button
-                  color="primaryLb"
-                  key={page.title}
-                  onClick={handleCloseNavMenu}
-                  sx={{ pl:3, my: 2, display: "block" }}
-                >
-                  {page.title}
-                </Button>
+                <Link to={page.url} className="header-link">
+                  <Button
+                    color="primaryLb"
+                    key={page.title}
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, display: "block" }}
+                  >
+                    {page.title}
+                  </Button>
+                </Link>
               ))}
             </Box>
 

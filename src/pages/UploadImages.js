@@ -223,6 +223,7 @@ export default function UploadImages() {
                 name="files"
                 value={[...state.files]}
                 multiple
+                fullWidth
                 hideSizeText={!state.files.length > 0}
                 onChange={handleFilesChange}
                 sx={{ mt: 2 }}
