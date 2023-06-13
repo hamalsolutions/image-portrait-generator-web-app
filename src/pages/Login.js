@@ -44,6 +44,7 @@ const Login = () => {
         .filter((site) => site.site !== "0-0")
         .map((site) => {
           return {
+            id: site.site,
             siteId: site.site.split("-")[0],
             locationId: site.site.split("-")[1],
             name: site.name,
@@ -175,7 +176,7 @@ const Login = () => {
   return (
     <ThemeProvider theme={defaultTheme}>
       {state.redirect && <Navigate to="/upload-images" replace={true} />}
-      <Container component="main" maxWidth="xs" sx={{ pt: 5 }}>
+      <Container component="main" maxWidth="xs" sx={{ pt: 2 }}>
         <CssBaseline />
         <Box
           sx={{
@@ -191,6 +192,7 @@ const Login = () => {
           </Typography>
           <Box component="form" noValidate sx={{ mt: 1 }}>
             <TextField
+              size="small"
               value={state.username}
               margin="normal"
               required
@@ -203,6 +205,7 @@ const Login = () => {
               onChange={handleInputChange}
             />
             <TextField
+              size="small"
               value={state.password}
               margin="normal"
               required
