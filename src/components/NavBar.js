@@ -1,4 +1,5 @@
-import * as React from "react";
+import React, { useContext } from "react";
+import { AuthContext } from "../App";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -9,14 +10,15 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import logoHorizontal from "../logo-horizontal.png";
+import logoHorizontal from "../img/logo-horizontal.png";
+import avatar from "../img/avatar.jpg";
 import { Link } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Stack } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { pages } from "../config/constants";
 
-const pages = [{title: "Upload Images", url: "/upload-images"},{title: "Download Images", url: "/download-images"}];
-const settings = ["Logout"];
 const theme = createTheme({
   palette: {
     primaryLb: {
@@ -29,10 +31,14 @@ const theme = createTheme({
       main: "#f6f6f6",
     },
     backgroundLb: {
-      main: "#f6f6f6",
+      main: "#fff",
       light: "#757ce8",
       dark: "#002884",
       contrastText: "#c2608e",
+    },
+    text: {
+      primaryLb: "#c2608e",
+      secondaryLb: "#8c8c8c",
     },
   },
 });
@@ -55,6 +61,8 @@ function NavBar() {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const authContext = useContext(AuthContext);
 
   return (
     <ThemeProvider theme={theme}>
@@ -103,12 +111,13 @@ function NavBar() {
             <Box sx={{ flexGrow: 1, display: { xs: "block", md: "none" } }}>
               <img src={logoHorizontal} width="124" alt="Little Bellies Logo" />
             </Box>
-            <Box sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "flex" } }}>
+            <Box
+              sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "flex" } }}
+            >
               {pages.map((page) => (
-                <Link to={page.url} className="header-link">
+                <Link to={page.url} key={page.title} className="header-link">
                   <Button
                     color="primaryLb"
-                    key={page.title}
                     onClick={handleCloseNavMenu}
                     sx={{ my: 2, display: "block" }}
                   >
@@ -117,13 +126,17 @@ function NavBar() {
                 </Link>
               ))}
             </Box>
+            <Stack
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+              spacing={1}
+              sx={{ flexGrow: 0 }}
+            >
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt="User Avatar" src={avatar} />
+              </IconButton>
 
-            <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                </IconButton>
-              </Tooltip>
               <Menu
                 sx={{ mt: "45px" }}
                 id="menu-appbar"
@@ -140,13 +153,29 @@ function NavBar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {settings.map((setting) => (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">{setting}</Typography>
-                  </MenuItem>
-                ))}
+                <MenuItem onClick={handleCloseUserMenu}>
+                  <Typography textAlign="center">Logout</Typography>
+                </MenuItem>
               </Menu>
-            </Box>
+              <Stack
+                direction="column"
+                justifyContent="center"
+                alignItems="flex-start"
+                spacing={-1}
+                sx={{ display: { xs: "none", md: "block" } }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                  {authContext.auth.auth.userName}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "text.secondaryLb" }}>
+                  <small>{authContext.auth.auth.userRol}</small>
+                </Typography>
+              </Stack>
+              <LogoutIcon
+                size="small"
+                sx={{ pl: 2, display: { xs: "none", md: "block" } }}
+              />
+            </Stack>
           </Toolbar>
         </Container>
       </AppBar>

@@ -11,7 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { MuiFileInput } from "mui-file-input";
 import NavBar from "../components/NavBar";
 import "../App.css";
-
+// validate mail required on form
 const defaultTheme = createTheme({
   palette: {
     primaryLb: {

@@ -10,7 +10,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { AuthContext } from "../App";
 import * as crypto from "crypto-js";
 import { Navigate } from "react-router-dom";
-import logo from "../logo.png";
+import logo from "../img/logo.png";
 
 const defaultTheme = createTheme({
   palette: {
