@@ -10,6 +10,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import MenuItem from "@mui/material/MenuItem";
 import { MuiFileInput } from "mui-file-input";
 import NavBar from "../components/NavBar";
+import Alert from "@mui/material/Alert";
 import "../App.css";
 // validate mail required on form
 const defaultTheme = createTheme({
@@ -33,9 +34,9 @@ const defaultTheme = createTheme({
 });
 
 export default function UploadImages() {
-  const [state, setState] = useState({
+  const initialState = {
     requesting: false,
-    redirect: false,
+    uploadSuccess: false,
     error: false,
     message: "",
     name: "",
@@ -44,8 +45,65 @@ export default function UploadImages() {
     location: "",
     observation: "",
     files: [],
-  });
+  };
+
+  const [state, setState] = useState(initialState);
   const authContext = useContext(AuthContext);
+
+  const uploadImage = async (image) => {
+    const data = new FormData();
+    const payload = {
+      clientName: state.name,
+      clientEmail: state.email,
+      userId: authContext.auth.auth.userId,
+      clientPhone: state.phone,
+      // location: state.location,
+      comments: state.observation,
+      photos: image,
+    };
+    const keys = Object.keys(payload);
+    keys.forEach((key, index) => {
+      data.append(`${key}`, payload[key]);
+    });
+
+    const uploadImageConfig = {
+      method: "POST",
+      body: data,
+    };
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/services/portrait/uploadFile`,
+      uploadImageConfig
+    );
+    const responseData = await response.json();
+    if (response.ok) {
+      return responseData;
+    } else {
+      return Promise.resolve({
+        fileError: image.name,
+        error:
+          responseData?.Error?.Message ??
+          "There was an error uploading the image",
+      });
+    }
+  };
+
+  const multiUpload = async () => {
+    const files = state.files;
+    const uploadAttemps = files.map((image) => uploadImage(image));
+    const uploadResults = await Promise.all(uploadAttemps);
+    const successfulUploads = uploadResults.filter((item) => {
+      return "filesNamesList" in item;
+    });
+    const failedUploads = uploadResults.filter((item) => {
+      return "fileError" in item;
+    });
+    const finalResult = {
+      success: successfulUploads.length === state.files.length,
+      successfulUploads,
+      failedUploads
+    };
+    return Promise.resolve(finalResult);
+  };
 
   const handleFormSubmit = async (e) => {
     if (state.requesting) {
@@ -59,40 +117,32 @@ export default function UploadImages() {
     }));
 
     try {
-      // const auth = await singleLogin({
-      //   username: state.username,
-      //   password: state.password,
-      //   siteId: "557418",
-      // }).catch((error) => {
-      //   console.log(error);
-      // });
-      // if (auth.error) {
-      //   setState((state) => ({
-      //     ...state,
-      //     requesting: false,
-      //     error: true,
-      //     message: auth.error,
-      //   }));
-      // } else {
-      //   authContext.setAuth({
-      //     ...authContext.auth,
-      //     auth,
-      //     sites,
-      //     loggedIn: true,
-      //   });
-      //   setState((state) => ({
-      //     ...state,
-      //     requesting: false,
-      //     redirect: true,
-      //   }));
-      // }
+      const upload = await multiUpload();
+      if (!upload?.success) {
+        let message = "There was an error uploading: ";
+        upload.failedUploads.forEach(item => {
+          message += item.fileError + " ";
+        });
+        setState((state) => ({
+          ...state,
+          requesting: false,
+          error: true,
+          message: message,
+        }));
+      } else {
+        setState((state) => ({
+          ...state,
+          requesting: false,
+          uploadSuccess: true,
+        }));
+      }
     } catch (error) {
-      console.error(error);
+      console.error("error", error);
       setState((state) => ({
         ...state,
         requesting: false,
         error: true,
-        message: JSON.stringify(error),
+        message: error.message,
       }));
     }
   };
@@ -129,6 +179,7 @@ export default function UploadImages() {
             fontWeight: "bold",
             color: "#c2608e",
           }}
+          data-cy="mainTitle"
         >
           8K Realistic View Add-on
         </Typography>
@@ -245,6 +296,24 @@ export default function UploadImages() {
               />
             </Grid>
             <Grid item xs={12}>
+              {state.uploadSuccess && (
+                <Alert
+                  severity="success"
+                  data-cy="successMessage"
+                  sx={{ width: 0.5, mx: "auto", textAlign: "center" }}
+                >
+                  All files were uploaded successfully
+                </Alert>
+              )}
+              {state.error && (
+                <Alert
+                  severity="error"
+                  data-cy="errorMessage"
+                  sx={{ width: 0.5, mx: "auto", textAlign: "center" }}
+                >
+                  {state.message}
+                </Alert>
+              )}
               <Button
                 onClick={handleFormSubmit}
                 data-cy="submitButton"
