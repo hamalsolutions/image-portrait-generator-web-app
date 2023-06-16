@@ -1,0 +1,6 @@
+{
+  "Error": {
+      "Message": "Staff identity authentication failed.",
+      "Code": "DeniedAccess"
+  }
+}
