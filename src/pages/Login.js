@@ -83,7 +83,7 @@ const Login = () => {
       method: "PUT",
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        siteid: siteId,
+        siteid: process.env.REACT_APP_SITE_ID,
       },
       body: JSON.stringify(body),
     };

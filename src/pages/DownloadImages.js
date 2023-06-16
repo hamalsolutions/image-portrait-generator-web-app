@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, forwardRef } from "react";
 import { AuthContext } from "../App";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import NavBar from "../components/NavBar";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -18,6 +19,12 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Modal from "@mui/material/Modal";
 import axios from "axios";
+import moment from "moment";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Alert from "@mui/material/Alert";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import "../App.css";
 // validate mail required on form
 const defaultTheme = createTheme({
@@ -47,12 +54,26 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: "50%",
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
   p: 4,
 };
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  "&:nth-of-type(odd)": {
+    backgroundColor: theme.palette.action.hover,
+  },
+  // hide last border
+  "&:last-child td, &:last-child th": {
+    border: 0,
+  },
+}));
+
+const StyledTableHead = styled(TableRow)(({ theme }) => ({
+  backgroundColor: "#c2608e",
+}));
 
 export default function DownloadImages() {
   const initialState = {
@@ -81,8 +102,27 @@ export default function DownloadImages() {
     setOpen(false);
   };
 
+  const [startDate, setStartDate] = useState(new Date());
+  const ExampleCustomInput = forwardRef(({ value, onClick }, ref) => (
+    <Button
+      data-cy="calendarButton"
+      variant="contained"
+      className="submitButton"
+      color="secondaryLb"
+      sx={{
+        mt: 3,
+        mb: 2,
+      }}
+      onClick={onClick}
+      ref={ref}
+    >
+      <CalendarMonthIcon color="primaryLb" sx={{ px: 1 }} />
+      {value}
+      <KeyboardArrowDownIcon color="primaryLb" sx={{ px: 1 }} />
+    </Button>
+  ));
+
   useEffect(() => {
-    console.log("onMount");
     if (state.requesting) {
       return;
     }
@@ -98,8 +138,9 @@ export default function DownloadImages() {
             "Content-type": "application/json; charset=UTF-8",
           },
         };
+        const date = moment(startDate).format("YYYY-MM-DD");
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/services/portrait/${authContext.auth.auth.userId}?date=2023-06-15`,
+          `${process.env.REACT_APP_API_URL}/api/services/portrait/${authContext.auth.auth.userId}?date=${date}`,
           getImageConfig
         );
         const responseData = await response.json();
@@ -137,11 +178,11 @@ export default function DownloadImages() {
       }
     }
     getImagesList();
-  }, []);
+  }, [startDate]);
 
   const downloadImage = async (index, download) => {
     const fileList = [...state.fileList];
-    
+
     if (fileList[index].url === "") {
       axios({
         method: "GET",
@@ -155,7 +196,7 @@ export default function DownloadImages() {
               if (download) {
                 const link = document.createElement("a");
                 link.href = url;
-                link.setAttribute("download", fileList[index].imageName);
+                link.setAttribute("download", fileList[index].fileName);
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -164,7 +205,7 @@ export default function DownloadImages() {
               setState((state) => ({
                 ...state,
                 fileList,
-                ...!download && {displayFile: index}
+                ...(!download && { displayFile: index }),
               }));
             } else {
               console.log("error al descargar la imagen");
@@ -183,53 +224,43 @@ export default function DownloadImages() {
         .catch(async (error) => {
           console.log("error al descargar la imagen");
         });
-    }
-    else{
-      if(download){
+    } else {
+      if (download) {
         const link = document.createElement("a");
         link.href = fileList[index].url;
         link.setAttribute("download", fileList[index].fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }
-      else{
+      } else {
         setState((state) => ({
           ...state,
-          displayFile: index
+          displayFile: index,
         }));
       }
     }
   };
 
-  const multiDownload = async () => {
-    const files = state.files;
-    const uploadAttemps = files.map((image) => downloadImage(image));
-    const uploadResults = await Promise.all(uploadAttemps);
-    const successfulUploads = uploadResults.filter((item) => {
-      return "filesNamesList" in item;
-    });
-    const failedUploads = uploadResults.filter((item) => {
-      return "fileError" in item;
-    });
-    const finalResult = {
-      success: successfulUploads.length === state.files.length,
-      successfulUploads,
-      failedUploads,
-    };
-    return Promise.resolve(finalResult);
-  };
-
-  const handleFormSubmit = async (e) => {
+  const handleDownloadAll = async (e) => {
     if (state.requesting) {
       return;
     }
-    downloadImage(0, true);
+
+    setState((state) => ({
+      ...state,
+      requesting: true,
+      error: false,
+    }));
+
+    state.fileList.forEach((element, index) => {
+      if (element.selected) {
+        downloadImage(index, true);
+      }
+    });
 
     setState((state) => ({
       ...state,
       requesting: false,
-      error: false,
     }));
 
     // try {
@@ -324,12 +355,30 @@ export default function DownloadImages() {
           Download Photos
         </Typography>
         <Grid container spacing={1}>
+          <Grid item xs={12} sx={{ mt: 1, textAlign: "right" }}>
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              customInput={<ExampleCustomInput />}
+            />
+          </Grid>
           <Grid item xs={12}>
-            <TableContainer component={Paper} sx={{ mt: 4, minWidth: 1 }}>
+            <TableContainer
+              className="tableComponent"
+              component={Paper}
+              sx={{ minWidth: 1 }}
+            >
               <Table sx={{ minWidth: 1 }}>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>
+                  <StyledTableHead theme={defaultTheme}>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        px: 0.5,
+                        color: "#ffffff",
+                        fontWeight: "bold",
+                      }}
+                    >
                       <Checkbox
                         {...label}
                         checked={state.selectedAll}
@@ -337,33 +386,69 @@ export default function DownloadImages() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell> </TableCell>
-                    <TableCell>PHOTO</TableCell>
-                    <TableCell>CLIENT</TableCell>
-                    <TableCell>PHONE</TableCell>
-                    <TableCell>EMAIL</TableCell>
-                    <TableCell>OBSERVATIONS</TableCell>
-                  </TableRow>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        px: 0.5,
+                        color: "#ffffff",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {" "}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 1, color: "#ffffff", fontWeight: "bold" }}
+                    >
+                      PHOTO
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 1, color: "#ffffff", fontWeight: "bold" }}
+                    >
+                      CLIENT
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 1, color: "#ffffff", fontWeight: "bold" }}
+                    >
+                      PHONE
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 1, color: "#ffffff", fontWeight: "bold" }}
+                    >
+                      EMAIL
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 1, color: "#ffffff", fontWeight: "bold" }}
+                    >
+                      OBSERVATIONS
+                    </TableCell>
+                  </StyledTableHead>
                 </TableHead>
                 {state.fileList.length === 0 && (
                   <TableBody>
                     <TableRow
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
-                      <TableCell>THERE ARE NO REGISTRIES TO SHOW</TableCell>
+                      <TableCell
+                        scope="row"
+                        colSpan={7}
+                        align="center"
+                        component="th"
+                      >
+                        THERE ARE NO REGISTRIES TO SHOW
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 )}
                 {state.fileList.length > 0 && (
                   <TableBody>
                     {state.fileList.map((row, index) => (
-                      <TableRow
+                      <StyledTableRow
                         key={row.userId}
                         sx={{
                           "&:last-child td, &:last-child th": { border: 0 },
                         }}
                       >
-                        <TableCell>
+                        <TableCell sx={{ p: 0.5 }}>
                           <Checkbox
                             {...label}
                             checked={row.selected ? 1 : 0}
@@ -371,19 +456,34 @@ export default function DownloadImages() {
                             size="small"
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ p: 0.5 }}>
                           <VisibilityIcon
                             onClick={() => {
                               handleOpen(index);
                             }}
+                            color="primaryLb"
                           />
                         </TableCell>
-                        <TableCell>{row.fileName}</TableCell>
-                        <TableCell>{row.clientName}</TableCell>
-                        <TableCell>{row.phone}</TableCell>
-                        <TableCell>{row.clientEmail}</TableCell>
-                        <TableCell>{row.comments}</TableCell>
-                      </TableRow>
+                        <TableCell sx={{ py: 0.5, fontWeight: "bold" }}>
+                          {row.fileName}
+                        </TableCell>
+                        <TableCell sx={{ py: 0.5 }}>{row.clientName}</TableCell>
+                        <TableCell sx={{ py: 0.5 }}>{row.phone}</TableCell>
+                        <TableCell sx={{ py: 0.5 }}>
+                          {row.clientEmail}
+                        </TableCell>
+                        <TableCell sx={{ py: 0.5 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              maxWidth: "inherit",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {row.comments}
+                          </Typography>
+                        </TableCell>
+                      </StyledTableRow>
                     ))}
                   </TableBody>
                 )}
@@ -392,7 +492,7 @@ export default function DownloadImages() {
           </Grid>
           <Grid item xs={12} sx={{ textAlign: "right" }}>
             <Button
-              onClick={handleFormSubmit}
+              onClick={handleDownloadAll}
               data-cy="submitButton"
               variant="contained"
               className="submitButton"
@@ -407,22 +507,25 @@ export default function DownloadImages() {
               Download
             </Button>
           </Grid>
+          {state.error && (
+            <Grid item xs={12} sx={{ textAlign: "center" }}>
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {state.message}
+              </Alert>
+            </Grid>
+          )}
         </Grid>
       </Container>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+      <Modal open={open} onClose={handleClose}>
         <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Text in a modal
-          </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography>
-          {state.displayFile !== -1 && <img src={state.fileList[state.displayFile].url} alt="" />}
+          {state.displayFile !== -1 &&
+            state.fileList[state.displayFile].url !== "" && (
+              <img
+                src={state.fileList[state.displayFile].url}
+                width="100%"
+                alt=""
+              />
+            )}
         </Box>
       </Modal>
     </ThemeProvider>

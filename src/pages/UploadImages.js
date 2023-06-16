@@ -205,7 +205,6 @@ export default function UploadImages() {
                 size="small"
                 value={state.name}
                 margin="normal"
-                required
                 fullWidth
                 id="name"
                 data-cy="name"
@@ -234,8 +233,7 @@ export default function UploadImages() {
                 className="input-lb"
                 size="small"
                 value={state.phone}
-                margin="normal"
-                required
+                margin="normal"                
                 fullWidth
                 id="phone"
                 data-cy="phone"
@@ -254,7 +252,6 @@ export default function UploadImages() {
                 label="Location"
                 name="location"
                 margin="normal"
-                required
                 fullWidth
               >
                 {authContext.auth.sites.map((site) => (
