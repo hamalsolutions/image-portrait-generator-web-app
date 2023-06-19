@@ -18,6 +18,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Stack } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { pages } from "../config/constants";
+import { Navigate } from "react-router-dom";
 
 const theme = createTheme({
   palette: {
@@ -43,9 +44,17 @@ const theme = createTheme({
   },
 });
 
+const initalAuthState = {
+  loggedIn: false,
+  auth: {},
+  status: "idle",
+  sites: [],
+};
+
 function NavBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [redirect, setRedirect] = React.useState(false);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -63,6 +72,11 @@ function NavBar() {
   };
 
   const authContext = useContext(AuthContext);
+
+  const logout = () => {
+    authContext.setAuth(initalAuthState);
+    setRedirect(true);
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -175,11 +189,13 @@ function NavBar() {
               <LogoutIcon
                 size="small"
                 sx={{ pl: 2, display: { xs: "none", md: "block" } }}
+                onClick={logout}
               />
             </Stack>
           </Toolbar>
         </Container>
       </AppBar>
+      {redirect && <Navigate to="/upload-images" replace={true} />}
     </ThemeProvider>
   );
 }
