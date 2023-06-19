@@ -25,6 +25,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Alert from "@mui/material/Alert";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import CircularProgress from "@mui/material/CircularProgress";
 import "../App.css";
 // validate mail required on form
 const defaultTheme = createTheme({
@@ -78,6 +79,7 @@ const StyledTableHead = styled(TableRow)(({ theme }) => ({
 export default function DownloadImages() {
   const initialState = {
     requesting: false,
+    requestingDownload: false,
     downloadSuccess: false,
     error: false,
     message: "",
@@ -243,13 +245,13 @@ export default function DownloadImages() {
   };
 
   const handleDownloadAll = async (e) => {
-    if (state.requesting) {
+    if (state.requestingDownload) {
       return;
     }
 
     setState((state) => ({
       ...state,
-      requesting: true,
+      requestingDownload: true,
       error: false,
     }));
 
@@ -261,38 +263,8 @@ export default function DownloadImages() {
 
     setState((state) => ({
       ...state,
-      requesting: false,
+      requestingDownload: false,
     }));
-
-    // try {
-    //   const upload = await multiUpload();
-    //   if (!upload?.success) {
-    //     let message = "There was an error uploading: ";
-    //     upload.failedUploads.forEach((item) => {
-    //       message += item.fileError + " ";
-    //     });
-    //     setState((state) => ({
-    //       ...state,
-    //       requesting: false,
-    //       error: true,
-    //       message: message,
-    //     }));
-    //   } else {
-    //     setState((state) => ({
-    //       ...state,
-    //       requesting: false,
-    //       uploadSuccess: true,
-    //     }));
-    //   }
-    // } catch (error) {
-    //   console.error("error", error);
-    //   setState((state) => ({
-    //     ...state,
-    //     requesting: false,
-    //     error: true,
-    //     message: error.message,
-    //   }));
-    // }
   };
 
   const handleSelectAll = (event) => {
@@ -424,6 +396,23 @@ export default function DownloadImages() {
                     </TableCell>
                   </StyledTableHead>
                 </TableHead>
+                {state.requesting && (<TableBody>
+                    <TableRow
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell
+                        scope="row"
+                        colSpan={7}
+                        align="center"
+                        component="th"
+                      >
+                        <CircularProgress size="1.5rem" />
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>)}
+                
+                {!state.requesting && (
+                <>
                 {state.fileList.length === 0 && (
                   <TableBody>
                     <TableRow
@@ -483,6 +472,7 @@ export default function DownloadImages() {
                     ))}
                   </TableBody>
                 )}
+                </>)}
               </Table>
             </TableContainer>
           </Grid>
