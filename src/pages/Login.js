@@ -121,7 +121,7 @@ const Login = () => {
     const responseData = await response.json();
     if (response.ok) {
       const userRole = responseData.userRol.toLowerCase().trim();
-      if (userRole !== "designer" && userRole !== "management") {
+      if (userRole !== "designer" && userRole !== "directiva") {
         return Promise.resolve({
           error: "Failed to authenticate against NOT AUTHORIZED",
           siteId: siteId,
