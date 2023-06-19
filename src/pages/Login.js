@@ -10,6 +10,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { AuthContext } from "../App";
 import * as crypto from "crypto-js";
 import { Navigate } from "react-router-dom";
+import CircularProgress from '@mui/material/CircularProgress';
 import logo from "../img/logo.png";
 
 const defaultTheme = createTheme({
@@ -20,6 +21,9 @@ const defaultTheme = createTheme({
       dark: "#874363",
       contrastText: "#fff",
     },
+    white:{
+      main: "#fff",
+    }
   },
 });
 
@@ -31,7 +35,29 @@ const Login = () => {
     message: "",
     username: "",
     password: "",
+    errors: {
+      username: "",
+      password: "",
+    },
   });
+
+  
+  const validateForm = () => {
+    let validForm = true;
+    const errors = {...state.errors}
+    const keys = Object.keys(errors);
+    keys.forEach((key, index) => {
+      if(state[key] === "" || state[key].length === 0 ){
+        errors[key] = "Required Input";
+        validForm = false;
+      }
+    });
+    setState((state) => ({
+      ...state,
+      errors
+    }));
+    return validForm;
+  }
 
   const authContext = useContext(AuthContext);
 
@@ -95,7 +121,7 @@ const Login = () => {
     const responseData = await response.json();
     if (response.ok) {
       const userRole = responseData.userRol.toLowerCase().trim();
-      if (userRole === "technicians") {
+      if (userRole !== "designer" && userRole !== "directiva") {
         return Promise.resolve({
           error: "Failed to authenticate against NOT AUTHORIZED",
           siteId: siteId,
@@ -112,7 +138,8 @@ const Login = () => {
   };
 
   const handleFormSubmit = async (e) => {
-    if (state.requesting) {
+    const validate = validateForm();
+    if (state.requesting || !validate) {
       return;
     }
 
@@ -138,7 +165,7 @@ const Login = () => {
         const auth = await singleLogin({
           username: state.username,
           password: state.password,
-          siteId: "557418",
+          siteId: `${process.env.REACT_APP_SITE_ID}`,
         }).catch((error) => {
           console.log(error);
         });
@@ -212,6 +239,8 @@ const Login = () => {
               label="Username"
               name="username"
               onChange={handleInputChange}
+              error= {state.errors.password!==""}
+              helperText={ state.errors.password}
             />
             <TextField
               size="small"
@@ -225,6 +254,8 @@ const Login = () => {
               type="password"
               id="password"
               onChange={handleInputChange}
+              error= {state.errors.password!==""}
+              helperText={ state.errors.password}
             />
             {state.error && <Alert 
               data-cy="errorAlert" severity="error">{state.message}</Alert>}
@@ -236,7 +267,8 @@ const Login = () => {
               color="primaryLb"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              {state.requesting && <CircularProgress color="white" size="1.5rem"/>}
+              {!state.requesting && <>Sign In</>}
             </Button>
           </Box>
         </Box>

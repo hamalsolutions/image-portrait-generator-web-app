@@ -212,6 +212,7 @@ export default function DownloadImages() {
             }
           } catch (errorE) {
             console.error(errorE);
+            console.log("error al descargar la imagen");
             // setState((state) => ({
             //   ...state,
             //   show: true,
