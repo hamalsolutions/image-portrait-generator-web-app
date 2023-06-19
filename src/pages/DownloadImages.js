@@ -473,16 +473,11 @@ export default function DownloadImages() {
                         <TableCell sx={{ py: 0.5 }}>
                           {row.clientEmail}
                         </TableCell>
-                        <TableCell sx={{ py: 0.5 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              maxWidth: "inherit",
+                        <TableCell sx={{ py: 0.5, 
+                              maxWidth: "200px",
                               textOverflow: "ellipsis",
-                            }}
-                          >
+                              wordBreak: 'break-all'}}>
                             {row.comments}
-                          </Typography>
                         </TableCell>
                       </StyledTableRow>
                     ))}
