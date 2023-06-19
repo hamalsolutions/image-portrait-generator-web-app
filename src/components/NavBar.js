@@ -117,6 +117,7 @@ function NavBar() {
               {pages.map((page) => (
                 <Link to={page.url} key={page.title} className="header-link">
                   <Button
+                    data-cy={page.dataCy}
                     color="primaryLb"
                     onClick={handleCloseNavMenu}
                     sx={{ my: 2, display: "block" }}
