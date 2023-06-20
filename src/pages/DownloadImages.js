@@ -81,6 +81,9 @@ export default function DownloadImages() {
     requesting: false,
     requestingDownload: false,
     downloadSuccess: false,
+    previewRequesting: false,
+    previewError: false,
+    previewMessage: "",
     error: false,
     message: "",
     selectedAll: false,
@@ -141,8 +144,12 @@ export default function DownloadImages() {
           },
         };
         const date = moment(startDate).format("YYYY-MM-DD");
+        const id =
+          authContext.auth.auth.userRol.toLowerCase().trim() === "directiva"
+            ? "all"
+            : authContext.auth.auth.userId;
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/services/portrait/${authContext.auth.auth.userId}?date=${date}`,
+          `${process.env.REACT_APP_API_URL}/api/services/portrait/${id}?date=${date}`,
           getImageConfig
         );
         const responseData = await response.json();
@@ -184,6 +191,13 @@ export default function DownloadImages() {
 
   const downloadImage = async (index, download) => {
     const fileList = [...state.fileList];
+    if (!download) {
+      setState((state) => ({
+        ...state,
+        previewRequesting: true,
+        previewError: false,
+      }));
+    }
 
     if (fileList[index].url === "") {
       axios({
@@ -207,25 +221,41 @@ export default function DownloadImages() {
               setState((state) => ({
                 ...state,
                 fileList,
+                previewRequesting: false,
+                previewError: false,
                 ...(!download && { displayFile: index }),
               }));
             } else {
-              console.log("error al descargar la imagen");
+              setState((state) => ({
+                ...state,
+                previewRequesting: false,
+                previewError: true,
+                previewMessage:
+                  "Error downloading image: " +
+                  response?.data?.error?.error_summary, //error_summary
+              }));
             }
           } catch (errorE) {
-            console.error(errorE);
-            console.log("error al descargar la imagen");
-            // setState((state) => ({
-            //   ...state,
-            //   show: true,
-            //   status: "ready",
-            //   message: "The file couldn't be fetched: " + JSON.stringify(errorE),
-            //   success: false,
-            // }));
+            setState((state) => ({
+              ...state,
+              previewRequesting: false,
+              previewError: true,
+              previewMessage:
+                "Error downloading image: " + errorE?.message ??
+                JSON.stringify(errorE), //error_summary
+            }));
           }
         })
         .catch(async (error) => {
-          console.log("error al descargar la imagen");
+          console.log(JSON.stringify(error))
+          setState((state) => ({
+            ...state,
+            previewRequesting: false,
+            previewError: true,
+            previewMessage:
+              "Error downloading image: " + error?.message ??
+              JSON.stringify(error),
+          }));
         });
     } else {
       if (download) {
@@ -396,7 +426,8 @@ export default function DownloadImages() {
                     </TableCell>
                   </StyledTableHead>
                 </TableHead>
-                {state.requesting && (<TableBody>
+                {state.requesting && (
+                  <TableBody>
                     <TableRow
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
@@ -409,70 +440,82 @@ export default function DownloadImages() {
                         <CircularProgress size="1.5rem" />
                       </TableCell>
                     </TableRow>
-                  </TableBody>)}
-                
+                  </TableBody>
+                )}
+
                 {!state.requesting && (
-                <>
-                {state.fileList.length === 0 && (
-                  <TableBody>
-                    <TableRow
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell
-                        scope="row"
-                        colSpan={7}
-                        align="center"
-                        component="th"
-                      >
-                        THERE ARE NO REGISTRIES TO SHOW
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-                {state.fileList.length > 0 && (
-                  <TableBody>
-                    {state.fileList.map((row, index) => (
-                      <StyledTableRow
-                        key={row.userId}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell sx={{ p: 0.5 }}>
-                          <Checkbox
-                            {...label}
-                            checked={row.selected ? 1 : 0}
-                            onChange={(event) => handleSelectItem(event, index)}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell sx={{ p: 0.5 }}>
-                          <VisibilityIcon
-                            onClick={() => {
-                              handleOpen(index);
+                  <>
+                    {state.fileList.length === 0 && (
+                      <TableBody>
+                        <TableRow
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell
+                            scope="row"
+                            colSpan={7}
+                            align="center"
+                            component="th"
+                          >
+                            THERE ARE NO REGISTRIES TO SHOW
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    )}
+                    {state.fileList.length > 0 && (
+                      <TableBody>
+                        {state.fileList.map((row, index) => (
+                          <StyledTableRow
+                            key={row.userId}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
                             }}
-                            color="primaryLb"
-                          />
-                        </TableCell>
-                        <TableCell sx={{ py: 0.5, fontWeight: "bold" }}>
-                          {row.fileName}
-                        </TableCell>
-                        <TableCell sx={{ py: 0.5 }}>{row.clientName}</TableCell>
-                        <TableCell sx={{ py: 0.5 }}>{row.phone}</TableCell>
-                        <TableCell sx={{ py: 0.5 }}>
-                          {row.clientEmail}
-                        </TableCell>
-                        <TableCell sx={{ py: 0.5, 
-                              maxWidth: "200px",
-                              textOverflow: "ellipsis",
-                              wordBreak: 'break-all'}}>
-                            {row.comments}
-                        </TableCell>
-                      </StyledTableRow>
-                    ))}
-                  </TableBody>
+                          >
+                            <TableCell sx={{ p: 0.5 }}>
+                              <Checkbox
+                                {...label}
+                                checked={row.selected ? 1 : 0}
+                                onChange={(event) =>
+                                  handleSelectItem(event, index)
+                                }
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ p: 0.5 }}>
+                              <VisibilityIcon
+                                onClick={() => {
+                                  handleOpen(index);
+                                }}
+                                color="primaryLb"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ py: 0.5, fontWeight: "bold" }}>
+                              {row.fileName}
+                            </TableCell>
+                            <TableCell sx={{ py: 0.5 }}>
+                              {row.clientName}
+                            </TableCell>
+                            <TableCell sx={{ py: 0.5 }}>{row.phone}</TableCell>
+                            <TableCell sx={{ py: 0.5 }}>
+                              {row.clientEmail}
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                py: 0.5,
+                                maxWidth: "200px",
+                                textOverflow: "ellipsis",
+                                wordBreak: "break-all",
+                              }}
+                            >
+                              {row.comments}
+                            </TableCell>
+                          </StyledTableRow>
+                        ))}
+                      </TableBody>
+                    )}
+                  </>
                 )}
-                </>)}
               </Table>
             </TableContainer>
           </Grid>
@@ -503,15 +546,34 @@ export default function DownloadImages() {
         </Grid>
       </Container>
       <Modal open={open} onClose={handleClose}>
-        <Box sx={style}>
-          {state.displayFile !== -1 &&
-            state.fileList[state.displayFile].url !== "" && (
-              <img
-                src={state.fileList[state.displayFile].url}
-                width="100%"
-                alt=""
-              />
-            )}
+        <Box sx={style} textAlign="center">
+          {state.previewRequesting && (
+            <>
+              <CircularProgress  size="1.5rem" />
+            </>
+          )}
+          {!state.previewRequesting && (
+            <>
+              {state.previewError && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {state.previewMessage}
+                </Alert>
+              )}
+              {!state.previewError && (
+                <>
+                  {state.displayFile !== -1 &&
+                    state.fileList[state.displayFile].url !== "" && (
+                      <img
+                        src={state.fileList[state.displayFile].url}
+                        height="auto"
+                        width="80%"
+                        alt=""
+                      />
+                    )}
+                </>
+              )}
+            </>
+          )}
         </Box>
       </Modal>
     </ThemeProvider>

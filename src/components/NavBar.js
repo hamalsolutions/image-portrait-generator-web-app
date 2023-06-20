@@ -12,7 +12,7 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import logoHorizontal from "../img/logo-horizontal.png";
-import avatar from "../img/avatar.jpg";
+import avatar from "../img/avatar.png";
 import { Link } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Stack } from "@mui/material";
@@ -153,7 +153,7 @@ function NavBar() {
               </IconButton>
 
               <Menu
-                sx={{ mt: "45px" }}
+                sx={{ mt: "45px", display: {md: 'none', lg: "none", xl:'none'} }}
                 id="menu-appbar"
                 anchorEl={anchorElUser}
                 anchorOrigin={{
@@ -168,7 +168,7 @@ function NavBar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                <MenuItem onClick={handleCloseUserMenu}>
+                <MenuItem onClick={logout}>
                   <Typography textAlign="center">Logout</Typography>
                 </MenuItem>
               </Menu>
