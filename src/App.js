@@ -8,6 +8,7 @@ import { Fallback, RootErrorBoundary } from "./pages/RootErrorBoundary";
 import Login from "./pages/Login";
 import NoMatch from "./pages/NoMatch";
 import UploadImages from "./pages/UploadImages";
+import DownloadImages from "./pages/DownloadImages";
 import { createContext } from "react";
 // import {projectLoader} from "./pages/ProjectLoader";
 
@@ -45,7 +46,7 @@ function App() {
     {
       path: "download-images",
       element: auth.loggedIn ? (
-        <UploadImages />
+        <DownloadImages />
       ) : (
         <Navigate to="/login" replace={true} />
       ),

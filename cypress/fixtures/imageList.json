@@ -1,0 +1,36 @@
+{
+  "success": true,
+  "fileList": [
+      {
+          "clientName": "Nota Realclient",
+          "fileName": "photo_2022-01-27_17-34-51.jpg",
+          "clientEmail": "fakeclient@notreal.lol",
+          "userId": "100000042",
+          "dateIndex": "2023-06-16",
+          "comments": "3 files in a row!",
+          "dateUpload": "2023-06-16T14:52:42.012Z",
+          "phone": "1231231231"
+      },
+      {
+          "clientName": "Nota Realclient",
+          "fileName": "photo_2022-10-10_20-21-25.jpg",
+          "clientEmail": "fakeclient@notreal.lol",
+          "userId": "100000042",
+          "dateIndex": "2023-06-16",
+          "comments": "3 files in a row!",
+          "dateUpload": "2023-06-16T14:52:42.088Z",
+          "phone": "1231231231"
+      },
+      {
+          "clientName": "Nota Realclient",
+          "fileName": "photo_2022-10-10_20-21-30.jpg",
+          "clientEmail": "fakeclient@notreal.lol",
+          "userId": "100000042",
+          "dateIndex": "2023-06-16",
+          "comments": "3 files in a row!",
+          "dateUpload": "2023-06-16T14:52:42.163Z",
+          "phone": "1231231231"
+      }
+  ],
+  "error": {}
+}

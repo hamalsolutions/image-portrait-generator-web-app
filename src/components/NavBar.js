@@ -12,12 +12,13 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import logoHorizontal from "../img/logo-horizontal.png";
-import avatar from "../img/avatar.jpg";
+import avatar from "../img/avatar.png";
 import { Link } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Stack } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { pages } from "../config/constants";
+import { Navigate } from "react-router-dom";
 
 const theme = createTheme({
   palette: {
@@ -43,9 +44,17 @@ const theme = createTheme({
   },
 });
 
+const initalAuthState = {
+  loggedIn: false,
+  auth: {},
+  status: "idle",
+  sites: [],
+};
+
 function NavBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [redirect, setRedirect] = React.useState(false);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -63,6 +72,11 @@ function NavBar() {
   };
 
   const authContext = useContext(AuthContext);
+
+  const logout = () => {
+    authContext.setAuth(initalAuthState);
+    setRedirect(true);
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -117,6 +131,7 @@ function NavBar() {
               {pages.map((page) => (
                 <Link to={page.url} key={page.title} className="header-link">
                   <Button
+                    data-cy={page.dataCy}
                     color="primaryLb"
                     onClick={handleCloseNavMenu}
                     sx={{ my: 2, display: "block" }}
@@ -138,7 +153,7 @@ function NavBar() {
               </IconButton>
 
               <Menu
-                sx={{ mt: "45px" }}
+                sx={{ mt: "45px", display: {md: 'none', lg: "none", xl:'none'} }}
                 id="menu-appbar"
                 anchorEl={anchorElUser}
                 anchorOrigin={{
@@ -153,7 +168,7 @@ function NavBar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                <MenuItem onClick={handleCloseUserMenu}>
+                <MenuItem onClick={logout}>
                   <Typography textAlign="center">Logout</Typography>
                 </MenuItem>
               </Menu>
@@ -174,11 +189,13 @@ function NavBar() {
               <LogoutIcon
                 size="small"
                 sx={{ pl: 2, display: { xs: "none", md: "block" } }}
+                onClick={logout}
               />
             </Stack>
           </Toolbar>
         </Container>
       </AppBar>
+      {redirect && <Navigate to="/upload-images" replace={true} />}
     </ThemeProvider>
   );
 }

@@ -12,6 +12,7 @@ import { MuiFileInput } from "mui-file-input";
 import NavBar from "../components/NavBar";
 import Alert from "@mui/material/Alert";
 import "../App.css";
+import CircularProgress from "@mui/material/CircularProgress";
 // validate mail required on form
 const defaultTheme = createTheme({
   palette: {
@@ -30,6 +31,9 @@ const defaultTheme = createTheme({
       dark: "#002884",
       contrastText: "#c2608e",
     },
+    white: {
+      main: "#fff",
+    },
   },
 });
 
@@ -45,6 +49,10 @@ export default function UploadImages() {
     location: "",
     observation: "",
     files: [],
+    errors: {
+      email: "",
+      files: "",
+    },
   };
 
   const [state, setState] = useState(initialState);
@@ -57,7 +65,7 @@ export default function UploadImages() {
       clientEmail: state.email,
       userId: authContext.auth.auth.userId,
       clientPhone: state.phone,
-      // location: state.location,
+      location: state.location,
       comments: state.observation,
       photos: image,
     };
@@ -100,13 +108,31 @@ export default function UploadImages() {
     const finalResult = {
       success: successfulUploads.length === state.files.length,
       successfulUploads,
-      failedUploads
+      failedUploads,
     };
     return Promise.resolve(finalResult);
   };
 
+  const validateForm = () => {
+    let validForm = true;
+    const errors = {...state.errors}
+    const keys = Object.keys(errors);
+    keys.forEach((key, index) => {
+      if(state[key] === "" || state[key].length === 0 ){
+        errors[key] = "Required Input";
+        validForm = false;
+      }
+    });
+    setState((state) => ({
+      ...state,
+      errors
+    }));
+    return validForm;
+  }
+
   const handleFormSubmit = async (e) => {
-    if (state.requesting) {
+    const validate = validateForm();
+    if (state.requesting || !validate) {
       return;
     }
 
@@ -120,7 +146,7 @@ export default function UploadImages() {
       const upload = await multiUpload();
       if (!upload?.success) {
         let message = "There was an error uploading: ";
-        upload.failedUploads.forEach(item => {
+        upload.failedUploads.forEach((item) => {
           message += item.fileError + " ";
         });
         setState((state) => ({
@@ -205,7 +231,6 @@ export default function UploadImages() {
                 size="small"
                 value={state.name}
                 margin="normal"
-                required
                 fullWidth
                 id="name"
                 data-cy="name"
@@ -216,6 +241,8 @@ export default function UploadImages() {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
+                error = {state.errors.email!==""}
+                helperText= {state.errors.email}
                 className="input-lb"
                 size="small"
                 value={state.email}
@@ -235,7 +262,6 @@ export default function UploadImages() {
                 size="small"
                 value={state.phone}
                 margin="normal"
-                required
                 fullWidth
                 id="phone"
                 data-cy="phone"
@@ -254,7 +280,6 @@ export default function UploadImages() {
                 label="Location"
                 name="location"
                 margin="normal"
-                required
                 fullWidth
               >
                 {authContext.auth.sites.map((site) => (
@@ -276,6 +301,9 @@ export default function UploadImages() {
                 multiple
                 fullWidth
                 hideSizeText={!state.files.length > 0}
+                inputProps={{ accept: "image/*" }}
+                error= {state.errors.files!==""}
+                helperText={ state.errors.files}
                 onChange={handleFilesChange}
                 sx={{ mt: 2 }}
               />
@@ -326,7 +354,10 @@ export default function UploadImages() {
                   mb: 2,
                 }}
               >
-                Upload
+                {state.requesting && (
+                  <CircularProgress color="white" size="1.5rem" />
+                )}
+                {!state.requesting && <>UPLOAD</>}
               </Button>
             </Grid>
           </Grid>
