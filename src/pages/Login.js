@@ -44,7 +44,10 @@ const Login = () => {
   
   const validateForm = () => {
     let validForm = true;
-    const errors = {...state.errors}
+    const errors = {
+      username: "",
+      password: "",
+    };
     const keys = Object.keys(errors);
     keys.forEach((key, index) => {
       if(state[key] === "" || state[key].length === 0 ){
