@@ -1,0 +1,66 @@
+{
+  "success": true,
+  "fileList": [
+      {
+          "clientName": "Nota Real Client",
+          "fileName": "photo_2022-01-27_17-34-51.jpg",
+          "clientEmail": "notreal@email.test",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "Not real observations tho",
+          "dateUpload": "2023-06-19T19:14:39.633Z",
+          "phone": "1231231231"
+      },
+      {
+          "clientName": "Nota Real Client",
+          "fileName": "photo_2022-10-10_20-21-25.jpg",
+          "clientEmail": "notreal@email.test",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "Not real observations tho",
+          "dateUpload": "2023-06-19T19:14:39.736Z",
+          "phone": "1231231231"
+      },
+      {
+          "clientName": "Nota Real Client",
+          "fileName": "photo_2022-10-10_20-21-30.jpg",
+          "clientEmail": "notreal@email.test",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "Not real observations tho",
+          "dateUpload": "2023-06-19T19:14:39.804Z",
+          "phone": "1231231231"
+      },
+      {
+          "clientName": "Gerardo Contreras",
+          "fileName": "dos.png",
+          "clientEmail": "contrerasrgerardo@gmail.com",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "Pruebas en local",
+          "dateUpload": "2023-06-19T20:17:34.661Z",
+          "phone": "4147206589"
+      },
+      {
+          "clientName": "Gerardo Contreras",
+          "fileName": "siete.png",
+          "clientEmail": "contrerasrgerardo@gmail.com",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "FAILED",
+          "dateUpload": "2023-06-19T20:17:35.167Z",
+          "phone": "4147206589"
+      },
+      {
+          "clientName": "Gerardo Contreras",
+          "fileName": "unp.png",
+          "clientEmail": "contrerasrgerardo@gmail.com",
+          "userId": "100000082",
+          "dateIndex": "2023-06-19",
+          "comments": "FAILED",
+          "dateUpload": "2023-06-19T20:17:51.485Z",
+          "phone": "4147206589"
+      }
+  ],
+  "error": {}
+}

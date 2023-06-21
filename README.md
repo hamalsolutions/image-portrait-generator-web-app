@@ -1,4 +1,4 @@
-# Image Portrait Generator App V-0.1.1
+# Image Portrait Generator App V-0.1.2
 
 This web app is created in order to let the technicians at Little Bellies Pregnancy Spa handle the files for the artistic process of making the 8k service addon.
 

@@ -200,9 +200,16 @@ export default function DownloadImages() {
     }
 
     if (fileList[index].url === "") {
+      let url = ""
+      if(fileList[index].comments === "FAILED"){
+        url = `${process.env.REACT_APP_API_URL}/api/services/portrait?fileName=${fileList[index].fileName}&fail=true`
+      }
+      else{
+        url =`${process.env.REACT_APP_API_URL}/api/services/portrait?fileName=${fileList[index].fileName}`
+      }
       axios({
         method: "GET",
-        url: `${process.env.REACT_APP_API_URL}/api/services/portrait?fileName=${fileList[index].fileName}`,
+        url,
         responseType: "blob",
       })
         .then(function (response) {
@@ -300,7 +307,9 @@ export default function DownloadImages() {
   const handleSelectAll = (event) => {
     const localRows = [...state.fileList];
     localRows.forEach((element) => {
-      element.selected = event.target.checked;
+      if(element.comments === "FAILED" || element.comments !== "FAILED"){
+        element.selected = event.target.checked;
+      }
     });
     setState((state) => ({
       ...state,
@@ -467,20 +476,24 @@ export default function DownloadImages() {
                       <TableBody>
                         {state.fileList.map((row, index) => (
                           <StyledTableRow
-                            key={row.userId}
+                            key={row.fileName}
+                            data-cy={"row-" + index}
                             sx={{
                               "&:last-child td, &:last-child th": { border: 0 },
                             }}
                           >
                             <TableCell sx={{ p: 0.5 }}>
-                              <Checkbox
-                                {...label}
-                                checked={row.selected ? 1 : 0}
-                                onChange={(event) =>
-                                  handleSelectItem(event, index)
-                                }
-                                size="small"
-                              />
+                              {(row.comments === "FAILED" || row.comments !== "FAILED") && (
+                                <Checkbox
+                                  {...label}
+                                  checked={row.selected ? 1 : 0}
+                                  onChange={(event) =>
+                                    handleSelectItem(event, index)
+                                  }
+                                  size="small"
+                                  data-cy={"check-" + index}
+                                />
+                              )}
                             </TableCell>
                             <TableCell sx={{ p: 0.5 }}>
                               <VisibilityIcon
@@ -488,6 +501,7 @@ export default function DownloadImages() {
                                   handleOpen(index);
                                 }}
                                 color="primaryLb"
+                                data-cy={"view-" + index}
                               />
                             </TableCell>
                             <TableCell sx={{ py: 0.5, fontWeight: "bold" }}>
@@ -521,8 +535,8 @@ export default function DownloadImages() {
           </Grid>
           <Grid item xs={12} sx={{ textAlign: "right" }}>
             <Button
+              data-cy="downloadButton"
               onClick={handleDownloadAll}
-              data-cy="submitButton"
               variant="contained"
               className="submitButton"
               color="primaryLb"
@@ -545,7 +559,7 @@ export default function DownloadImages() {
           )}
         </Grid>
       </Container>
-      <Modal open={open} onClose={handleClose}>
+      <Modal open={open} slotProps={{backdrop:{id: 'backdropCy'}}} onClose={handleClose}>
         <Box sx={style} textAlign="center">
           {state.previewRequesting && (
             <>
@@ -555,7 +569,7 @@ export default function DownloadImages() {
           {!state.previewRequesting && (
             <>
               {state.previewError && (
-                <Alert severity="error" sx={{ mt: 2 }}>
+                <Alert data-cy="previewErrorMessage" severity="error" sx={{ mt: 2 }}>
                   {state.previewMessage}
                 </Alert>
               )}
@@ -564,6 +578,7 @@ export default function DownloadImages() {
                   {state.displayFile !== -1 &&
                     state.fileList[state.displayFile].url !== "" && (
                       <img
+                        data-cy="previewImage"
                         src={state.fileList[state.displayFile].url}
                         height="auto"
                         width="80%"
